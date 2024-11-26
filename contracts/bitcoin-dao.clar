@@ -222,3 +222,38 @@
     )
   )
 )
+
+(define-public (execute-proposal (proposal-id uint))
+  (let (
+    (caller tx-sender)
+  )
+    (asserts! (is-member caller) ERR-NOT-MEMBER)
+    (match (map-get? proposals proposal-id)
+      proposal 
+      (begin
+        (asserts! (>= block-height (get expires-at proposal)) ERR-PROPOSAL-EXPIRED)
+        (asserts! (is-eq (get status proposal) "active") ERR-INVALID-PROPOSAL)
+        (let (
+          (yes-votes (get yes-votes proposal))
+          (no-votes (get no-votes proposal))
+          (amount (get amount proposal))
+        )
+          (if (> yes-votes no-votes)
+            (begin
+              (try! (as-contract (stx-transfer? amount tx-sender (get creator proposal))))
+              (var-set treasury-balance (- (var-get treasury-balance) amount))
+              (map-set proposals proposal-id (merge proposal {status: "executed"}))
+              (try! (update-member-reputation (get creator proposal) 5)) ;; Increase reputation for successful proposal
+              (ok true)
+            )
+            (begin
+              (map-set proposals proposal-id (merge proposal {status: "rejected"}))
+              (ok false)
+            )
+          )
+        )
+      )
+      ERR-INVALID-PROPOSAL
+    )
+  )
+)
