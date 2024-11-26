@@ -309,3 +309,24 @@
     (ok true)
   )
 )
+
+;; Cross-DAO collaboration
+
+(define-public (propose-collaboration (partner-dao principal) (proposal-id uint))
+  (let (
+    (caller tx-sender)
+    (collaboration-id (+ (var-get total-proposals) u1))
+  )
+    (asserts! (is-member caller) ERR-NOT-MEMBER)
+    (asserts! (is-active-proposal proposal-id) ERR-INVALID-PROPOSAL)
+    (map-set collaborations collaboration-id
+      {
+        partner-dao: partner-dao,
+        proposal-id: proposal-id,
+        status: "proposed"
+      }
+    )
+    (var-set total-proposals collaboration-id)
+    (ok collaboration-id)
+  )
+)
