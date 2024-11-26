@@ -171,3 +171,31 @@
     )
   )
 )
+
+;; Proposal management
+
+(define-public (create-proposal (title (string-ascii 50)) (description (string-utf8 500)) (amount uint))
+  (let (
+    (caller tx-sender)
+    (proposal-id (+ (var-get total-proposals) u1))
+  )
+    (asserts! (is-member caller) ERR-NOT-MEMBER)
+    (asserts! (>= (var-get treasury-balance) amount) ERR-INSUFFICIENT-FUNDS)
+    (map-set proposals proposal-id
+      {
+        creator: caller,
+        title: title,
+        description: description,
+        amount: amount,
+        yes-votes: u0,
+        no-votes: u0,
+        status: "active",
+        created-at: block-height,
+        expires-at: (+ block-height u1440) ;; Proposal expires after 1440 blocks (approx. 10 days)
+      }
+    )
+    (var-set total-proposals proposal-id)
+    (try! (update-member-reputation caller 1)) ;; Increase reputation for creating a proposal
+    (ok proposal-id)
+  )
+)
