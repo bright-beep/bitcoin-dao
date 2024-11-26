@@ -363,3 +363,11 @@
 
 (define-read-only (get-total-proposals)
   (ok (var-get total-proposals))
+)
+
+;; Initialize contract
+(begin
+  (var-set total-members u0)
+  (var-set total-proposals u0)
+  (var-set treasury-balance u0)
+)
