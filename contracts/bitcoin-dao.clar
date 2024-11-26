@@ -15,3 +15,8 @@
 (define-constant ERR-ALREADY-VOTED (err u105))
 (define-constant ERR-INSUFFICIENT-FUNDS (err u106))
 (define-constant ERR-INVALID-AMOUNT (err u107))
+
+;; Data variables
+(define-data-var total-members uint u0)
+(define-data-var total-proposals uint u0)
+(define-data-var treasury-balance uint u0)
