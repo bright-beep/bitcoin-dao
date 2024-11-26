@@ -181,6 +181,8 @@
   )
     (asserts! (is-member caller) ERR-NOT-MEMBER)
     (asserts! (>= (var-get treasury-balance) amount) ERR-INSUFFICIENT-FUNDS)
+    (asserts! (> (len title) u0) ERR-INVALID-PROPOSAL)
+    (asserts! (> (len description) u0) ERR-INVALID-PROPOSAL)
     (map-set proposals proposal-id
       {
         creator: caller,
@@ -319,6 +321,7 @@
   )
     (asserts! (is-member caller) ERR-NOT-MEMBER)
     (asserts! (is-active-proposal proposal-id) ERR-INVALID-PROPOSAL)
+    (asserts! (not (is-eq partner-dao caller)) ERR-INVALID-PROPOSAL)
     (map-set collaborations collaboration-id
       {
         partner-dao: partner-dao,
@@ -339,6 +342,7 @@
       collaboration 
       (begin
         (asserts! (is-eq caller (get partner-dao collaboration)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq (get status collaboration) "proposed") ERR-INVALID-PROPOSAL)
         (map-set collaborations collaboration-id (merge collaboration {status: "accepted"}))
         (ok true)
       )
