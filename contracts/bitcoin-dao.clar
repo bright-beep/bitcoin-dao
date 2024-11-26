@@ -73,6 +73,20 @@
   )
 )
 
+(define-private (is-valid-proposal-id (proposal-id uint))
+  (match (map-get? proposals proposal-id)
+    proposal true
+    false
+  )
+)
+
+(define-private (is-valid-collaboration-id (collaboration-id uint))
+  (match (map-get? collaborations collaboration-id)
+    collaboration true
+    false
+  )
+)
+
 (define-private (calculate-voting-power (user principal))
   (let (
     (member-data (unwrap! (map-get? members user) u0))
@@ -230,6 +244,7 @@
     (caller tx-sender)
   )
     (asserts! (is-member caller) ERR-NOT-MEMBER)
+    (asserts! (is-valid-proposal-id proposal-id) ERR-INVALID-PROPOSAL)
     (match (map-get? proposals proposal-id)
       proposal 
       (begin
@@ -244,11 +259,15 @@
             (begin
               (try! (as-contract (stx-transfer? amount tx-sender (get creator proposal))))
               (var-set treasury-balance (- (var-get treasury-balance) amount))
+              ;; Add additional validation before setting status
+              (asserts! (is-valid-proposal-id proposal-id) ERR-INVALID-PROPOSAL)
               (map-set proposals proposal-id (merge proposal {status: "executed"}))
-              (try! (update-member-reputation (get creator proposal) 5)) ;; Increase reputation for successful proposal
+              (try! (update-member-reputation (get creator proposal) 5))
               (ok true)
             )
             (begin
+              ;; Add additional validation before setting status
+              (asserts! (is-valid-proposal-id proposal-id) ERR-INVALID-PROPOSAL)
               (map-set proposals proposal-id (merge proposal {status: "rejected"}))
               (ok false)
             )
@@ -338,11 +357,14 @@
   (let (
     (caller tx-sender)
   )
+    (asserts! (is-valid-collaboration-id collaboration-id) ERR-INVALID-PROPOSAL)
     (match (map-get? collaborations collaboration-id)
       collaboration 
       (begin
         (asserts! (is-eq caller (get partner-dao collaboration)) ERR-NOT-AUTHORIZED)
         (asserts! (is-eq (get status collaboration) "proposed") ERR-INVALID-PROPOSAL)
+        ;; Add additional validation before setting status
+        (asserts! (is-valid-collaboration-id collaboration-id) ERR-INVALID-PROPOSAL)
         (map-set collaborations collaboration-id (merge collaboration {status: "accepted"}))
         (ok true)
       )
