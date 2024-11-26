@@ -122,3 +122,25 @@
     (ok true)
   )
 )
+
+(define-public (stake-tokens (amount uint))
+  (let (
+    (caller tx-sender)
+  )
+    (asserts! (is-member caller) ERR-NOT-MEMBER)
+    (asserts! (> amount u0) ERR-INVALID-AMOUNT)
+    (try! (stx-transfer? amount caller (as-contract tx-sender)))
+    (match (map-get? members caller)
+      member-data 
+      (let (
+        (new-stake (+ (get stake member-data) amount))
+        (updated-data (merge member-data {stake: new-stake, last-interaction: block-height}))
+      )
+        (map-set members caller updated-data)
+        (var-set treasury-balance (+ (var-get treasury-balance) amount))
+        (ok new-stake)
+      )
+      ERR-NOT-MEMBER
+    )
+  )
+)
