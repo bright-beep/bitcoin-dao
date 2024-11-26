@@ -53,3 +53,22 @@
     status: (string-ascii 10)
   }
 )
+
+;; Private functions
+
+(define-private (is-member (user principal))
+  (match (map-get? members user)
+    member-data true
+    false
+  )
+)
+
+(define-private (is-active-proposal (proposal-id uint))
+  (match (map-get? proposals proposal-id)
+    proposal (and 
+      (< block-height (get expires-at proposal))
+      (is-eq (get status proposal) "active")
+    )
+    false
+  )
+)
