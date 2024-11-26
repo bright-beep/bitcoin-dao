@@ -43,3 +43,13 @@
     expires-at: uint
   }
 )
+
+(define-map votes {proposal-id: uint, voter: principal} bool)
+
+(define-map collaborations uint 
+  {
+    partner-dao: principal,
+    proposal-id: uint,
+    status: (string-ascii 10)
+  }
+)
