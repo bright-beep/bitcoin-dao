@@ -199,3 +199,26 @@
     (ok proposal-id)
   )
 )
+
+(define-public (vote-on-proposal (proposal-id uint) (vote bool))
+  (let (
+    (caller tx-sender)
+  )
+    (asserts! (is-member caller) ERR-NOT-MEMBER)
+    (asserts! (is-active-proposal proposal-id) ERR-INVALID-PROPOSAL)
+    (asserts! (not (default-to false (map-get? votes {proposal-id: proposal-id, voter: caller}))) ERR-ALREADY-VOTED)
+    
+    (let (
+      (voting-power (calculate-voting-power caller))
+      (proposal (unwrap! (map-get? proposals proposal-id) ERR-INVALID-PROPOSAL))
+    )
+      (if vote
+        (map-set proposals proposal-id (merge proposal {yes-votes: (+ (get yes-votes proposal) voting-power)}))
+        (map-set proposals proposal-id (merge proposal {no-votes: (+ (get no-votes proposal) voting-power)}))
+      )
+      (map-set votes {proposal-id: proposal-id, voter: caller} true)
+      (try! (update-member-reputation caller 1)) ;; Increase reputation for voting
+      (ok true)
+    )
+  )
+)
