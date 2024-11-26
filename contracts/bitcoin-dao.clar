@@ -330,3 +330,19 @@
     (ok collaboration-id)
   )
 )
+
+(define-public (accept-collaboration (collaboration-id uint))
+  (let (
+    (caller tx-sender)
+  )
+    (match (map-get? collaborations collaboration-id)
+      collaboration 
+      (begin
+        (asserts! (is-eq caller (get partner-dao collaboration)) ERR-NOT-AUTHORIZED)
+        (map-set collaborations collaboration-id (merge collaboration {status: "accepted"}))
+        (ok true)
+      )
+      ERR-INVALID-PROPOSAL
+    )
+  )
+)
